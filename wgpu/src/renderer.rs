@@ -55,7 +55,7 @@ impl<'a> Layer<'a> {
 impl Renderer {
     fn new(settings: Settings) -> Self {
         let adapter = Adapter::request(&RequestAdapterOptions {
-            power_preference: PowerPreference::Default,
+            power_preference: PowerPreference::HighPerformance,
             backends: BackendBit::all(),
         })
         .expect("Request adapter");
