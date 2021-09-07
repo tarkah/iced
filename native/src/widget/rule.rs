@@ -41,6 +41,18 @@ impl<Renderer: self::Renderer> Rule<Renderer> {
         self.style = style.into();
         self
     }
+
+    /// Sets the height of the [`Rule`].
+    pub fn height(mut self, height: Length) -> Self {
+        self.height = height;
+        self
+    }
+
+    /// Sets the width of the [`Rule`].
+    pub fn width(mut self, width: Length) -> Self {
+        self.width = width;
+        self
+    }
 }
 
 impl<Message, Renderer> Widget<Message, Renderer> for Rule<Renderer>
