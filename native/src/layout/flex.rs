@@ -76,8 +76,9 @@ where
     let max_cross = axis.cross(limits.max());
 
     let mut fill_sum = 0;
-    let mut cross = axis.cross(limits.min()).max(axis.cross(limits.fill()));
+    let mut cross = axis.cross(limits.min());
     let mut available = axis.main(limits.max()) - total_spacing;
+    let mut all_flex = false;
 
     let mut nodes: Vec<Node> = Vec::with_capacity(items.len());
     nodes.resize(items.len(), Node::default());
@@ -90,6 +91,8 @@ where
         .fill_factor();
 
         if fill_factor == 0 {
+            all_flex = false;
+
             let (max_width, max_height) = axis.pack(available, max_cross);
 
             let child_limits =
@@ -127,8 +130,14 @@ where
             let (min_main, min_cross) =
                 axis.pack(min_main, axis.cross(limits.min()));
 
-            let (max_main, max_cross) =
-                axis.pack(max_main, axis.cross(limits.max()));
+            let (max_main, max_cross) = axis.pack(
+                max_main,
+                if all_flex {
+                    axis.cross(limits.max())
+                } else {
+                    cross
+                },
+            );
 
             let child_limits = Limits::new(
                 Size::new(min_main, min_cross),
@@ -136,7 +145,10 @@ where
             );
 
             let layout = child.layout(renderer, &child_limits);
-            cross = cross.max(axis.cross(layout.size()));
+
+            if all_flex {
+                cross = cross.max(axis.cross(layout.size()));
+            }
 
             nodes[i] = layout;
         }
