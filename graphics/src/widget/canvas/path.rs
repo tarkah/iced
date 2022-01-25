@@ -52,7 +52,7 @@ impl Path {
     }
 
     #[inline]
-    pub(crate) fn raw(&self) -> &lyon::path::Path {
+    pub fn raw(&self) -> &lyon::path::Path {
         &self.raw
     }
 
