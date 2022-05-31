@@ -16,7 +16,7 @@ const INDEX_BUFFER_SIZE: usize = 10_000;
 #[derive(Debug)]
 pub(crate) struct Pipeline {
     pipeline: wgpu::RenderPipeline,
-    blit: Option<msaa::Blit>,
+    msaa: Option<msaa::Msaa>,
     constants_layout: wgpu::BindGroupLayout,
     constants: wgpu::BindGroup,
     uniforms_buffer: Buffer<Uniforms>,
@@ -184,9 +184,7 @@ impl Pipeline {
                 },
                 depth_stencil: None,
                 multisample: wgpu::MultisampleState {
-                    count: u32::from(
-                        antialiasing.map(|a| a.sample_count()).unwrap_or(1),
-                    ),
+                    count: antialiasing.map(|a| a.sample_count()).unwrap_or(1),
                     mask: !0,
                     alpha_to_coverage_enabled: false,
                 },
@@ -195,7 +193,7 @@ impl Pipeline {
 
         Pipeline {
             pipeline,
-            blit: antialiasing.map(|a| msaa::Blit::new(device, format, a)),
+            msaa: antialiasing.map(|a| msaa::Msaa::new(format, a)),
             constants_layout,
             constants: constant_bind_group,
             uniforms_buffer: constants_buffer,
@@ -344,14 +342,13 @@ impl Pipeline {
         }
 
         {
-            let (attachment, resolve_target, load) =
-                if let Some(blit) = &mut self.blit {
-                    let (attachment, resolve_target) =
-                        blit.targets(device, target_width, target_height);
+            let (view, resolve_target, load) =
+                if let Some(msaa) = &mut self.msaa {
+                    let view = msaa.target(device, target_width, target_height);
 
                     (
-                        attachment,
-                        Some(resolve_target),
+                        view,
+                        Some(target),
                         wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
                     )
                 } else {
@@ -362,7 +359,7 @@ impl Pipeline {
                 encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("iced_wgpu::triangle render pass"),
                     color_attachments: &[wgpu::RenderPassColorAttachment {
-                        view: attachment,
+                        view,
                         resolve_target,
                         ops: wgpu::Operations { load, store: true },
                     }],
@@ -405,10 +402,6 @@ impl Pipeline {
 
                 render_pass.draw_indexed(0..indices as u32, 0, 0..1);
             }
-        }
-
-        if let Some(blit) = &mut self.blit {
-            blit.draw(encoder, target);
         }
     }
 }
