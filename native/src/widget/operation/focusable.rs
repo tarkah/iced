@@ -113,9 +113,11 @@ pub fn focus_previous<T>() -> impl Operation<T> {
 
             match self.count.focused {
                 None if self.current == self.count.total - 1 => state.focus(),
-                Some(0) if self.current == 0 => state.unfocus(),
-                Some(0) => {}
-                Some(focused) if focused == self.current => state.unfocus(),
+                Some(focused)
+                    if focused == self.current && self.count.total > 1 =>
+                {
+                    state.unfocus()
+                }
                 Some(focused) if focused - 1 == self.current => state.focus(),
                 _ => {}
             }
@@ -148,7 +150,11 @@ pub fn focus_next<T>() -> impl Operation<T> {
         fn focusable(&mut self, state: &mut dyn Focusable, _id: Option<&Id>) {
             match self.count.focused {
                 None if self.current == 0 => state.focus(),
-                Some(focused) if focused == self.current => state.unfocus(),
+                Some(focused)
+                    if focused == self.current && self.count.total > 1 =>
+                {
+                    state.unfocus()
+                }
                 Some(focused) if focused + 1 == self.current => state.focus(),
                 _ => {}
             }
