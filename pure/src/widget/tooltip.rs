@@ -27,6 +27,7 @@ where
     position: Position,
     gap: u16,
     padding: u16,
+    snap_within_viewport: bool,
     style: <Renderer::Theme as container::StyleSheet>::Style,
 }
 
@@ -52,6 +53,7 @@ where
             position,
             gap: 0,
             padding: Self::DEFAULT_PADDING,
+            snap_within_viewport: true,
             style: Default::default(),
         }
     }
@@ -79,6 +81,12 @@ where
     /// Sets the padding of the [`Tooltip`].
     pub fn padding(mut self, padding: u16) -> Self {
         self.padding = padding;
+        self
+    }
+
+    /// Sets whether the [`Tooltip`] is snapped within the viewport.
+    pub fn snap_within_viewport(mut self, snap: bool) -> Self {
+        self.snap_within_viewport = snap;
         self
     }
 
@@ -192,6 +200,7 @@ where
             self.position,
             self.gap,
             self.padding,
+            self.snap_within_viewport,
             self.style,
             |renderer, limits| {
                 Widget::<(), Renderer>::layout(tooltip, renderer, limits)
