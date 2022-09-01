@@ -166,8 +166,14 @@ where
             if self.controls.is_some() {
                 let controls_layout = children.next().unwrap();
 
-                !controls_layout.bounds().contains(cursor_position)
-                    && !title_layout.bounds().contains(cursor_position)
+                if title_layout.bounds().width + controls_layout.bounds().width
+                    > padded.bounds().width
+                {
+                    !controls_layout.bounds().contains(cursor_position)
+                } else {
+                    !controls_layout.bounds().contains(cursor_position)
+                        && !title_layout.bounds().contains(cursor_position)
+                }
             } else {
                 !title_layout.bounds().contains(cursor_position)
             }
