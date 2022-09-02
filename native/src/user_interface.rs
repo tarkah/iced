@@ -251,6 +251,7 @@ where
 
         let _ = ManuallyDrop::into_inner(manual_overlay);
 
+        let mut relayout = false;
         let event_statuses = events
             .iter()
             .cloned()
@@ -272,12 +273,7 @@ where
                 );
 
                 shell.revalidate_layout(|| {
-                    self.base = renderer.layout(
-                        &self.root,
-                        &layout::Limits::new(Size::ZERO, self.bounds),
-                    );
-
-                    self.overlay = None;
+                    relayout = true;
                 });
 
                 if shell.are_widgets_invalid() {
@@ -287,6 +283,15 @@ where
                 event_status.merge(overlay_status)
             })
             .collect();
+
+        if relayout {
+            self.base = renderer.layout(
+                &self.root,
+                &layout::Limits::new(Size::ZERO, self.bounds),
+            );
+
+            self.overlay = None;
+        }
 
         (state, event_statuses)
     }
