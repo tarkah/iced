@@ -27,6 +27,8 @@ impl Renderer for Null {
     ) {
     }
 
+    fn with_scale(&mut self, _scale: f32, _f: impl FnOnce(&mut Self)) {}
+
     fn clear(&mut self) {}
 
     fn fill_quad(

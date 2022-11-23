@@ -99,6 +99,8 @@ impl Backend {
 
         bounds.height = bounds.height.min(target_height);
 
+        let scale_factor = layer.scale * scale_factor;
+
         if !layer.quads.is_empty() {
             self.quad_pipeline.draw(
                 gl,

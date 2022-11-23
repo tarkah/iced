@@ -36,6 +36,9 @@ pub trait Renderer: Sized {
         f: impl FnOnce(&mut Self),
     );
 
+    /// Applies a `scale` to the primitives recorded in the given closure.
+    fn with_scale(&mut self, scale: f32, f: impl FnOnce(&mut Self));
+
     /// Clears all of the recorded primitives in the [`Renderer`].
     fn clear(&mut self);
 

@@ -101,6 +101,22 @@ where
         });
     }
 
+    fn with_scale(&mut self, scale: f32, f: impl FnOnce(&mut Self)) {
+        let current_primitives = std::mem::take(&mut self.primitives);
+
+        f(self);
+
+        let layer_primitives =
+            std::mem::replace(&mut self.primitives, current_primitives);
+
+        self.primitives.push(Primitive::Scale {
+            scale,
+            content: Box::new(Primitive::Group {
+                primitives: layer_primitives,
+            }),
+        });
+    }
+
     fn fill_quad(
         &mut self,
         quad: renderer::Quad,

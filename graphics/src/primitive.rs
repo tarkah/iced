@@ -77,6 +77,14 @@ pub enum Primitive {
         /// The primitive to translate
         content: Box<Primitive>,
     },
+    /// A primitive that applies a scaling
+    Scale {
+        /// The scale
+        scale: f32,
+
+        /// The primitive to scale
+        content: Box<Primitive>,
+    },
     /// A low-level primitive to render a mesh of triangles.
     ///
     /// It can be used to render many kinds of geometry freely.

@@ -32,6 +32,9 @@ pub struct Layer<'a> {
 
     /// The images of the [`Layer`].
     pub images: Vec<Image>,
+
+    /// TEMP: REMOVE
+    pub scale: f32,
 }
 
 impl<'a> Layer<'a> {
@@ -43,7 +46,13 @@ impl<'a> Layer<'a> {
             meshes: Vec::new(),
             text: Vec::new(),
             images: Vec::new(),
+            scale: 1.0,
         }
+    }
+
+    /// Applies a scale to the [`Layer`]
+    pub fn with_scale(self, scale: f32) -> Self {
+        Self { scale, ..self }
     }
 
     /// Creates a new [`Layer`] for the provided overlay text.
@@ -196,7 +205,8 @@ impl<'a> Layer<'a> {
                 if let Some(clip_bounds) =
                     layer.bounds.intersection(&translated_bounds)
                 {
-                    let clip_layer = Layer::new(clip_bounds);
+                    let clip_layer =
+                        Layer::new(clip_bounds).with_scale(layer.scale);
                     layers.push(clip_layer);
 
                     Self::process_primitive(
@@ -216,6 +226,25 @@ impl<'a> Layer<'a> {
                     translation + *new_translation,
                     content,
                     current_layer,
+                );
+            }
+            // TEMP: Create a new layer for each scale since we can
+            // apply different scale factors per layer.
+            //
+            // It'd be better if this can be instanced uniform data to
+            // apply scaling per primitive in GPU
+            Primitive::Scale { scale, content } => {
+                let layer = &mut layers[current_layer];
+                let scaled_layer =
+                    Layer::new(layer.bounds).with_scale(*scale * layer.scale);
+
+                layers.push(scaled_layer);
+
+                Self::process_primitive(
+                    layers,
+                    translation,
+                    content,
+                    layers.len() - 1,
                 );
             }
             Primitive::Cached { cache } => {
