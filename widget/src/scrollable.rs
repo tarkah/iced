@@ -1097,8 +1097,10 @@ impl Offset {
 pub struct Viewport {
     offset_x: Offset,
     offset_y: Offset,
-    bounds: Rectangle,
-    content_bounds: Rectangle,
+    /// The viewport bounds of the [`Scrollable`].
+    pub bounds: Rectangle,
+    /// The content bounds of the [`Scrollable`].
+    pub content_bounds: Rectangle,
 }
 
 impl Viewport {
