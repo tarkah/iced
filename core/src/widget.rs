@@ -1,5 +1,6 @@
 //! Create custom widgets and operate on them.
 pub mod operation;
+pub mod rich_text;
 pub mod text;
 pub mod tree;
 
@@ -7,6 +8,7 @@ mod id;
 
 pub use id::Id;
 pub use operation::Operation;
+pub use rich_text::RichText;
 pub use text::Text;
 pub use tree::Tree;
 

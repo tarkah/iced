@@ -1,11 +1,24 @@
 use iced::alignment;
+use iced::color;
+use iced::font;
 use iced::theme;
+use iced::widget::rich_text::Span;
 use iced::widget::{
-    checkbox, column, container, horizontal_space, image, radio, row,
-    scrollable, slider, text, text_input, toggler, vertical_space,
+    checkbox, column, container, horizontal_space, image, radio, rich_text,
+    row, scrollable, slider, text, text_input, toggler, vertical_space,
 };
 use iced::widget::{Button, Column, Container, Slider};
 use iced::{Color, Element, Font, Length, Renderer, Sandbox, Settings};
+
+pub const BOLD: Font = Font {
+    weight: font::Weight::Bold,
+    ..Font::DEFAULT
+};
+
+pub const CONDENSED: Font = Font {
+    stretch: font::Stretch::Condensed,
+    ..Font::DEFAULT
+};
 
 pub fn main() -> iced::Result {
     env_logger::init();
@@ -460,6 +473,24 @@ impl<'a> Step {
         .padding(20)
         .spacing(20);
 
+        let rich_text_section = column![
+            "Rich text: ",
+            rich_text(vec![
+                Span::new("Regular "),
+                Span::new("Bold ").font(BOLD),
+                Span::new("Condensed ").font(CONDENSED),
+                Span::new("C ").style(color!(0x9400d3)),
+                Span::new("o ").style(color!(0x4b0082)),
+                Span::new("l ").style(color!(0x0000ff)),
+                Span::new("o ").style(color!(0x00ff00)),
+                Span::new("r ").style(color!(0xffff00)),
+                Span::new("e ").style(color!(0xff7f00)),
+                Span::new("d").style(color!(0xff0000)),
+            ]),
+        ]
+        .padding(20)
+        .spacing(20);
+
         Self::container("Text")
             .push(
                 "Text is probably the most essential widget for your UI. \
@@ -467,6 +498,7 @@ impl<'a> Step {
             )
             .push(size_section)
             .push(color_section)
+            .push(rich_text_section)
     }
 
     fn radio(selection: Option<Language>) -> Column<'a, StepMessage> {

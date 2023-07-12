@@ -9,6 +9,7 @@ use crate::overlay;
 use crate::pick_list::{self, PickList};
 use crate::progress_bar::{self, ProgressBar};
 use crate::radio::{self, Radio};
+use crate::rich_text::{self, RichText};
 use crate::rule::{self, Rule};
 use crate::runtime::Command;
 use crate::scrollable::{self, Scrollable};
@@ -131,6 +132,19 @@ where
     Renderer::Theme: text::StyleSheet,
 {
     Text::new(text.to_string())
+}
+
+/// Creates a new [`RichText`] widget with the provided spans.
+///
+/// [`RichText`]: widget::RichText
+pub fn rich_text<'a, Renderer>(
+    spans: Vec<rich_text::Span<'a, Renderer>>,
+) -> RichText<'a, Renderer>
+where
+    Renderer: core::text::Renderer,
+    Renderer::Theme: text::StyleSheet,
+{
+    RichText::new(spans)
 }
 
 /// Creates a new [`Checkbox`].
