@@ -23,7 +23,6 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 mod antialiasing;
 mod error;
-mod primitive;
 mod transformation;
 mod viewport;
 
@@ -33,6 +32,7 @@ pub mod compositor;
 pub mod damage;
 pub mod gradient;
 pub mod mesh;
+pub mod primitive;
 pub mod renderer;
 
 #[cfg(feature = "geometry")]

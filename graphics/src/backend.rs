@@ -47,10 +47,9 @@ pub trait Text {
     /// bounds.
     fn measure(
         &self,
-        contents: &str,
+        contents: &text::Content<'_, Font>,
         size: f32,
         line_height: text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: text::Shaping,
     ) -> Size;
@@ -64,10 +63,9 @@ pub trait Text {
     /// with the nearest centeroid.
     fn hit_test(
         &self,
-        contents: &str,
+        contents: &text::Content<'_, Font>,
         size: f32,
         line_height: text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: text::Shaping,
         point: Point,

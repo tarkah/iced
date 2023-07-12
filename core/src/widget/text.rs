@@ -139,11 +139,16 @@ where
 
         let size = self.size.unwrap_or_else(|| renderer.default_size());
 
+        let content = text::Content::Span(text::Span {
+            content: &self.content,
+            color: Color::TRANSPARENT,
+            font: self.font.unwrap_or_else(|| renderer.default_font()),
+        });
+
         let bounds = renderer.measure(
-            &self.content,
+            &content,
             size,
             self.line_height,
-            self.font.unwrap_or_else(|| renderer.default_font()),
             limits.max(),
             self.shaping,
         );
@@ -221,12 +226,14 @@ pub fn draw<Renderer>(
     let size = size.unwrap_or_else(|| renderer.default_size());
 
     renderer.fill_text(crate::Text {
-        content,
+        content: text::Content::Span(text::Span {
+            content,
+            color: appearance.color.unwrap_or(style.text_color),
+            font: font.unwrap_or_else(|| renderer.default_font()),
+        }),
         size,
         line_height,
         bounds: Rectangle { x, y, ..bounds },
-        color: appearance.color.unwrap_or(style.text_color),
-        font: font.unwrap_or_else(|| renderer.default_font()),
         horizontal_alignment,
         vertical_alignment,
         shaping,

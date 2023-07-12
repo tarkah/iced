@@ -504,7 +504,15 @@ where
             }
 
             renderer.fill_text(Text {
-                content: &option.to_string(),
+                content: text::Content::span(
+                    &option.to_string(),
+                    if is_selected {
+                        appearance.selected_text_color
+                    } else {
+                        appearance.text_color
+                    },
+                    self.font.unwrap_or_else(|| renderer.default_font()),
+                ),
                 bounds: Rectangle {
                     x: bounds.x + self.padding.left,
                     y: bounds.center_y(),
@@ -513,12 +521,6 @@ where
                 },
                 size: text_size,
                 line_height: self.text_line_height,
-                font: self.font.unwrap_or_else(|| renderer.default_font()),
-                color: if is_selected {
-                    appearance.selected_text_color
-                } else {
-                    appearance.text_color
-                },
                 horizontal_alignment: alignment::Horizontal::Left,
                 vertical_alignment: alignment::Vertical::Center,
                 shaping: self.text_shaping,

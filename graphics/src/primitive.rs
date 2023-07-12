@@ -2,8 +2,7 @@
 use crate::core::alignment;
 use crate::core::image;
 use crate::core::svg;
-use crate::core::text;
-use crate::core::{Background, Color, Font, Rectangle, Vector};
+use crate::core::{Background, Color, Rectangle, Vector};
 
 use std::sync::Arc;
 
@@ -13,17 +12,13 @@ pub enum Primitive<T> {
     /// A text primitive
     Text {
         /// The contents of the text
-        content: String,
+        content: text::Content,
         /// The bounds of the text
         bounds: Rectangle,
-        /// The color of the text
-        color: Color,
         /// The size of the text in logical pixels
         size: f32,
         /// The line height of the text
         line_height: text::LineHeight,
-        /// The font of the text
-        font: Font,
         /// The horizontal alignment of the text
         horizontal_alignment: alignment::Horizontal,
         /// The vertical alignment of the text
@@ -113,6 +108,81 @@ impl<T> Primitive<T> {
         Self::Translate {
             translation,
             content: Box::new(self),
+        }
+    }
+}
+
+pub mod text {
+    //! Text rendering primitives.
+
+    use crate::core::text;
+    use crate::core::{Color, Font};
+
+    pub use crate::core::text::{LineHeight, Shaping};
+
+    /// The text content.
+    #[derive(Debug, Clone, PartialEq)]
+    pub enum Content {
+        /// A single [`Span`] of text.
+        Span(Span),
+        /// Multiple spans of text.
+        Spans(Vec<Span>),
+    }
+
+    impl<'a> From<text::Content<'a, Font>> for Content {
+        fn from(content: text::Content<'a, Font>) -> Self {
+            match content {
+                text::Content::Span(span) => Content::Span(Span::from(span)),
+                text::Content::Spans(spans) => {
+                    Content::Spans(spans.into_iter().map(Span::from).collect())
+                }
+            }
+        }
+    }
+
+    impl<'a> From<&'a Content> for text::Content<'a, Font> {
+        fn from(content: &'a Content) -> Self {
+            match content {
+                Content::Span(span) => {
+                    text::Content::Span(text::Span::from(span))
+                }
+                Content::Spans(spans) => text::Content::Spans(
+                    spans.iter().map(text::Span::from).collect(),
+                ),
+            }
+        }
+    }
+
+    /// A span of text.
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct Span {
+        /// The content of the span.
+        pub content: String,
+
+        /// The color of the [`Span`].
+        pub color: Color,
+
+        /// The font of the [`Span`].
+        pub font: Font,
+    }
+
+    impl<'a> From<text::Span<'a, Font>> for Span {
+        fn from(span: text::Span<'a, Font>) -> Self {
+            Self {
+                content: span.content.to_string(),
+                color: span.color,
+                font: span.font,
+            }
+        }
+    }
+
+    impl<'a> From<&'a Span> for text::Span<'a, Font> {
+        fn from(span: &'a Span) -> Self {
+            Self {
+                content: &span.content,
+                color: span.color,
+                font: span.font,
+            }
         }
     }
 }

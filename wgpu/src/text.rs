@@ -1,6 +1,6 @@
 use crate::core::alignment;
 use crate::core::font::{self, Font};
-use crate::core::text::{Hit, LineHeight, Shaping};
+use crate::core::text::{Content, Hit, LineHeight, Shaping};
 use crate::core::{Pixels, Point, Rectangle, Size};
 use crate::graphics::color;
 use crate::layer::Text;
@@ -90,14 +90,16 @@ impl Pipeline {
                 let (key, _) = cache.allocate(
                     font_system,
                     Key {
-                        content: section.content,
+                        // RICH_TEXT: TODO
+                        content: "",
                         size: section.size,
                         line_height: f32::from(
                             section
                                 .line_height
                                 .to_absolute(Pixels(section.size)),
                         ),
-                        font: section.font,
+                        // RICH_TEXT: TODO
+                        font: Font::DEFAULT,
                         bounds: Size {
                             width: section.bounds.width,
                             height: section.bounds.height,
@@ -159,8 +161,10 @@ impl Pipeline {
                             bottom: (clip_bounds.y + clip_bounds.height) as i32,
                         },
                         default_color: {
+                            // RICH_TEXT: TODO
                             let [r, g, b, a] =
-                                color::pack(section.color).components();
+                                color::pack(crate::core::Color::BLACK)
+                                    .components();
 
                             glyphon::Color::rgba(
                                 (r * 255.0) as u8,
@@ -239,10 +243,9 @@ impl Pipeline {
 
     pub fn measure(
         &self,
-        content: &str,
+        _contents: &Content<'_, Font>,
         size: f32,
         line_height: LineHeight,
-        font: Font,
         bounds: Size,
         shaping: Shaping,
     ) -> Size {
@@ -253,10 +256,12 @@ impl Pipeline {
         let (_, entry) = cache.allocate(
             &mut self.font_system.borrow_mut(),
             Key {
-                content,
+                // RICH_TEXT: TODO
+                content: "",
                 size,
                 line_height,
-                font,
+                // RICH_TEXT: TODO
+                font: Font::DEFAULT,
                 bounds,
                 shaping,
             },
@@ -268,10 +273,9 @@ impl Pipeline {
 
     pub fn hit_test(
         &self,
-        content: &str,
+        _contents: &Content<'_, Font>,
         size: f32,
         line_height: LineHeight,
-        font: Font,
         bounds: Size,
         shaping: Shaping,
         point: Point,
@@ -284,10 +288,12 @@ impl Pipeline {
         let (_, entry) = cache.allocate(
             &mut self.font_system.borrow_mut(),
             Key {
-                content,
+                // RICH_TEXT: TODO
+                content: "",
                 size,
                 line_height,
-                font,
+                // RICH_TEXT: TODO
+                font: Font::DEFAULT,
                 bounds,
                 shaping,
             },

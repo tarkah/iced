@@ -3,6 +3,7 @@ use crate::graphics::geometry::fill::{self, Fill};
 use crate::graphics::geometry::stroke::{self, Stroke};
 use crate::graphics::geometry::{Path, Style, Text};
 use crate::graphics::Gradient;
+use crate::primitive::text;
 use crate::primitive::{self, Primitive};
 
 pub struct Frame {
@@ -105,17 +106,19 @@ impl Frame {
 
         // TODO: Use vectorial text instead of primitive
         self.primitives.push(Primitive::Text {
-            content: text.content,
+            content: text::Content::Span(text::Span {
+                content: text.content,
+                color: text.color,
+                font: text.font,
+            }),
             bounds: Rectangle {
                 x: position.x,
                 y: position.y,
                 width: f32::INFINITY,
                 height: f32::INFINITY,
             },
-            color: text.color,
             size: text.size,
             line_height: text.line_height,
-            font: text.font,
             horizontal_alignment: text.horizontal_alignment,
             vertical_alignment: text.vertical_alignment,
             shaping: text.shaping,

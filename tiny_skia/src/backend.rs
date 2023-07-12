@@ -367,10 +367,8 @@ impl Backend {
             Primitive::Text {
                 content,
                 bounds,
-                color,
                 size,
                 line_height,
-                font,
                 horizontal_alignment,
                 vertical_alignment,
                 shaping,
@@ -386,12 +384,10 @@ impl Backend {
                     .then_some(clip_mask as &_);
 
                 self.text_pipeline.draw(
-                    content,
+                    &content.into(),
                     *bounds + translation,
-                    *color,
                     *size,
                     *line_height,
-                    *font,
                     *horizontal_alignment,
                     *vertical_alignment,
                     *shaping,
@@ -793,29 +789,21 @@ impl backend::Text for Backend {
 
     fn measure(
         &self,
-        contents: &str,
+        contents: &text::Content<'_, Font>,
         size: f32,
         line_height: text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: text::Shaping,
     ) -> Size {
-        self.text_pipeline.measure(
-            contents,
-            size,
-            line_height,
-            font,
-            bounds,
-            shaping,
-        )
+        self.text_pipeline
+            .measure(contents, size, line_height, bounds, shaping)
     }
 
     fn hit_test(
         &self,
-        contents: &str,
+        contents: &text::Content<'_, Font>,
         size: f32,
         line_height: text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: text::Shaping,
         point: Point,
@@ -825,7 +813,6 @@ impl backend::Text for Backend {
             contents,
             size,
             line_height,
-            font,
             bounds,
             shaping,
             point,

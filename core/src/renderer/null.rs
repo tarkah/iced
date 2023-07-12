@@ -58,10 +58,9 @@ impl text::Renderer for Null {
 
     fn measure(
         &self,
-        _content: &str,
+        _content: &text::Content<'_, Font>,
         _size: f32,
         _line_height: text::LineHeight,
-        _font: Font,
         _bounds: Size,
         _shaping: text::Shaping,
     ) -> Size {
@@ -70,10 +69,9 @@ impl text::Renderer for Null {
 
     fn hit_test(
         &self,
-        _contents: &str,
+        _content: &text::Content<'_, Font>,
         _size: f32,
         _line_height: text::LineHeight,
-        _font: Self::Font,
         _bounds: Size,
         _shaping: text::Shaping,
         _point: Point,

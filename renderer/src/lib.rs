@@ -158,26 +158,24 @@ impl<T> text::Renderer for Renderer<T> {
 
     fn measure(
         &self,
-        content: &str,
+        content: &text::Content<'_, Font>,
         size: f32,
         line_height: text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: text::Shaping,
     ) -> Size {
         delegate!(
             self,
             renderer,
-            renderer.measure(content, size, line_height, font, bounds, shaping)
+            renderer.measure(content, size, line_height, bounds, shaping)
         )
     }
 
     fn hit_test(
         &self,
-        content: &str,
+        content: &text::Content<'_, Font>,
         size: f32,
         line_height: text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: text::Shaping,
         point: Point,
@@ -190,7 +188,6 @@ impl<T> text::Renderer for Renderer<T> {
                 content,
                 size,
                 line_height,
-                font,
                 bounds,
                 shaping,
                 point,

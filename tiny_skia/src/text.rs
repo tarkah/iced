@@ -1,6 +1,6 @@
 use crate::core::alignment;
 use crate::core::font::{self, Font};
-use crate::core::text::{Hit, LineHeight, Shaping};
+use crate::core::text::{Content, Hit, LineHeight, Shaping};
 use crate::core::{Color, Pixels, Point, Rectangle, Size};
 
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -41,12 +41,10 @@ impl Pipeline {
 
     pub fn draw(
         &mut self,
-        content: &str,
+        content: &Content<'_, Font>,
         bounds: Rectangle,
-        color: Color,
         size: f32,
         line_height: LineHeight,
-        font: Font,
         horizontal_alignment: alignment::Horizontal,
         vertical_alignment: alignment::Vertical,
         shaping: Shaping,
@@ -60,7 +58,6 @@ impl Pipeline {
         let key = Key {
             bounds: bounds.size(),
             content,
-            font,
             size,
             line_height,
             shaping,
@@ -93,7 +90,7 @@ impl Pipeline {
 
                 if let Some((buffer, placement)) = self.glyph_cache.allocate(
                     physical_glyph.cache_key,
-                    color,
+                    glyph.color_opt.unwrap_or(cosmic_text::Color(0)),
                     font_system,
                     &mut swash,
                 ) {
@@ -125,10 +122,9 @@ impl Pipeline {
 
     pub fn measure(
         &self,
-        content: &str,
+        content: &Content<'_, Font>,
         size: f32,
         line_height: LineHeight,
-        font: Font,
         bounds: Size,
         shaping: Shaping,
     ) -> Size {
@@ -142,7 +138,6 @@ impl Pipeline {
                 content,
                 size,
                 line_height,
-                font,
                 bounds,
                 shaping,
             },
@@ -153,10 +148,9 @@ impl Pipeline {
 
     pub fn hit_test(
         &self,
-        content: &str,
+        content: &Content<'_, Font>,
         size: f32,
         line_height: LineHeight,
-        font: Font,
         bounds: Size,
         shaping: Shaping,
         point: Point,
@@ -172,7 +166,6 @@ impl Pipeline {
                 content,
                 size,
                 line_height,
-                font,
                 bounds,
                 shaping,
             },
@@ -240,6 +233,11 @@ fn to_shaping(shaping: Shaping) -> cosmic_text::Shaping {
     }
 }
 
+fn to_color(color: Color) -> cosmic_text::Color {
+    let [r, g, b, a] = color.into_rgba8();
+    cosmic_text::Color::rgba(r, g, b, a)
+}
+
 #[derive(Debug, Clone, Default)]
 struct GlyphCache {
     entries: FxHashMap<
@@ -260,12 +258,11 @@ impl GlyphCache {
     fn allocate(
         &mut self,
         cache_key: cosmic_text::CacheKey,
-        color: Color,
+        color: cosmic_text::Color,
         font_system: &mut cosmic_text::FontSystem,
         swash: &mut cosmic_text::SwashCache,
     ) -> Option<(&[u8], cosmic_text::Placement)> {
-        let [r, g, b, _a] = color.into_rgba8();
-        let key = (cache_key, [r, g, b]);
+        let key = (cache_key, [color.r(), color.g(), color.b()]);
 
         if let hash_map::Entry::Vacant(entry) = self.entries.entry(key) {
             // TODO: Outline support
@@ -290,9 +287,9 @@ impl GlyphCache {
                         for _x in 0..image.placement.width {
                             buffer[i] = bytemuck::cast(
                                 tiny_skia::ColorU8::from_rgba(
-                                    b,
-                                    g,
-                                    r,
+                                    color.b(),
+                                    color.g(),
+                                    color.r(),
                                     image.data[i],
                                 )
                                 .premultiply(),
@@ -386,54 +383,45 @@ impl Cache {
     fn allocate(
         &mut self,
         font_system: &mut cosmic_text::FontSystem,
-        key: Key<'_>,
+        key: Key<'_, '_>,
     ) -> (KeyHash, &mut Entry) {
         let hash = key.hash(self.hasher.build_hasher());
 
-        if let Some(hash) = self.measurements.get(&hash) {
-            let _ = self.recently_used.insert(*hash);
+        // RICH_TEXT: Reenable caching
+        //
+        // cosmic-text: enable updating color attribute w/out invalidating shaping & layout
 
-            return (*hash, self.entries.get_mut(hash).unwrap());
-        }
+        // if let Some(hash) = self.measurements.get(&hash) {
+        //     let _ = self.recently_used.insert(*hash);
 
-        if let hash_map::Entry::Vacant(entry) = self.entries.entry(hash) {
-            let metrics = cosmic_text::Metrics::new(key.size, key.size * 1.2);
-            let mut buffer = cosmic_text::Buffer::new(font_system, metrics);
+        //     return (*hash, self.entries.get_mut(hash).unwrap());
+        // }
 
-            buffer.set_size(
-                font_system,
-                key.bounds.width,
-                key.bounds.height.max(key.size * 1.2),
-            );
-            buffer.set_text(
-                font_system,
-                key.content,
-                cosmic_text::Attrs::new()
-                    .family(to_family(key.font.family))
-                    .weight(to_weight(key.font.weight))
-                    .stretch(to_stretch(key.font.stretch)),
-                to_shaping(key.shaping),
-            );
+        // if let hash_map::Entry::Vacant(entry) = self.entries.entry(hash) {
+        let metrics = cosmic_text::Metrics::new(key.size, key.size * 1.2);
+        let mut buffer = cosmic_text::Buffer::new(font_system, metrics);
 
-            let bounds = measure(&buffer);
+        update_buffer(font_system, &mut buffer, key);
 
-            let _ = entry.insert(Entry { buffer, bounds });
+        let bounds = measure(&buffer);
 
-            for bounds in [
-                bounds,
-                Size {
-                    width: key.bounds.width,
-                    ..bounds
-                },
-            ] {
-                if key.bounds != bounds {
-                    let _ = self.measurements.insert(
-                        Key { bounds, ..key }.hash(self.hasher.build_hasher()),
-                        hash,
-                    );
-                }
+        let _ = self.entries.insert(hash, Entry { buffer, bounds });
+
+        for bounds in [
+            bounds,
+            Size {
+                width: key.bounds.width,
+                ..bounds
+            },
+        ] {
+            if key.bounds != bounds {
+                let _ = self.measurements.insert(
+                    Key { bounds, ..key }.hash(self.hasher.build_hasher()),
+                    hash,
+                );
             }
         }
+        // }
 
         let _ = self.recently_used.insert(hash);
 
@@ -457,21 +445,22 @@ impl Cache {
 }
 
 #[derive(Debug, Clone, Copy)]
-struct Key<'a> {
-    content: &'a str,
+struct Key<'a, 'b> {
+    content: &'b Content<'a, Font>,
     size: f32,
     line_height: f32,
-    font: Font,
     bounds: Size,
     shaping: Shaping,
 }
 
-impl Key<'_> {
+impl Key<'_, '_> {
     fn hash<H: Hasher>(self, mut hasher: H) -> KeyHash {
-        self.content.hash(&mut hasher);
+        self.content.iter().for_each(|span| {
+            span.content.hash(&mut hasher);
+            span.font.hash(&mut hasher);
+        });
         self.size.to_bits().hash(&mut hasher);
         self.line_height.to_bits().hash(&mut hasher);
-        self.font.hash(&mut hasher);
         self.bounds.width.to_bits().hash(&mut hasher);
         self.bounds.height.to_bits().hash(&mut hasher);
         self.shaping.hash(&mut hasher);
@@ -481,3 +470,39 @@ impl Key<'_> {
 }
 
 type KeyHash = u64;
+
+fn update_buffer<'a>(
+    font_system: &mut cosmic_text::FontSystem,
+    buffer: &mut cosmic_text::Buffer,
+    key: Key,
+) {
+    let mut text = String::new();
+    let mut attrs = cosmic_text::AttrsList::new(cosmic_text::Attrs::new());
+
+    key.content.iter().for_each(|span| {
+        let start = text.len();
+        text.push_str(&span.content);
+        let end = text.len();
+
+        attrs.add_span(
+            start..end,
+            cosmic_text::Attrs::new()
+                .family(to_family(span.font.family))
+                .weight(to_weight(span.font.weight))
+                .stretch(to_stretch(span.font.stretch))
+                .color(to_color(span.color)),
+        );
+    });
+
+    buffer.set_size(
+        font_system,
+        key.bounds.width,
+        key.bounds.height.max(key.size * 1.2),
+    );
+    buffer.lines = vec![cosmic_text::BufferLine::new(
+        text,
+        attrs,
+        to_shaping(key.shaping),
+    )];
+    buffer.shape_until_scroll(font_system);
+}

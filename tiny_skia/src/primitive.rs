@@ -1,6 +1,8 @@
 use crate::core::Rectangle;
 use crate::graphics::Damage;
 
+pub use crate::graphics::primitive::text;
+
 pub type Primitive = crate::graphics::Primitive<Custom>;
 
 #[derive(Debug, Clone, PartialEq)]

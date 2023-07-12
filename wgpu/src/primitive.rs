@@ -2,6 +2,8 @@
 use crate::core::Rectangle;
 use crate::graphics::{Damage, Mesh};
 
+pub use crate::graphics::primitive::text;
+
 /// The graphical primitives supported by `iced_wgpu`.
 pub type Primitive = crate::graphics::Primitive<Custom>;
 

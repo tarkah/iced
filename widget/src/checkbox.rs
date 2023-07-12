@@ -286,8 +286,11 @@ where
 
             if self.is_checked {
                 renderer.fill_text(text::Text {
-                    content: &code_point.to_string(),
-                    font: *font,
+                    content: text::Content::span(
+                        &code_point.to_string(),
+                        custom_style.icon_color,
+                        *font,
+                    ),
                     size,
                     line_height: *line_height,
                     bounds: Rectangle {
@@ -295,7 +298,6 @@ where
                         y: bounds.center_y(),
                         ..bounds
                     },
-                    color: custom_style.icon_color,
                     horizontal_alignment: alignment::Horizontal::Center,
                     vertical_alignment: alignment::Vertical::Center,
                     shaping: *shaping,

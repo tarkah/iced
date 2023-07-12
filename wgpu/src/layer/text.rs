@@ -1,27 +1,21 @@
 use crate::core::alignment;
 use crate::core::text;
-use crate::core::{Color, Font, Rectangle};
+use crate::core::{Font, Rectangle};
 
 /// A paragraph of text.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Text<'a> {
     /// The content of the [`Text`].
-    pub content: &'a str,
+    pub content: text::Content<'a, Font>,
 
     /// The layout bounds of the [`Text`].
     pub bounds: Rectangle,
-
-    /// The color of the [`Text`], in __linear RGB_.
-    pub color: Color,
 
     /// The size of the [`Text`] in logical pixels.
     pub size: f32,
 
     /// The line height of the [`Text`].
     pub line_height: text::LineHeight,
-
-    /// The font of the [`Text`].
-    pub font: Font,
 
     /// The horizontal alignment of the [`Text`].
     pub horizontal_alignment: alignment::Horizontal,

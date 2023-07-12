@@ -358,29 +358,21 @@ impl backend::Text for Backend {
 
     fn measure(
         &self,
-        contents: &str,
+        contents: &core::text::Content<'_, Font>,
         size: f32,
         line_height: core::text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: core::text::Shaping,
     ) -> Size {
-        self.text_pipeline.measure(
-            contents,
-            size,
-            line_height,
-            font,
-            bounds,
-            shaping,
-        )
+        self.text_pipeline
+            .measure(contents, size, line_height, bounds, shaping)
     }
 
     fn hit_test(
         &self,
-        contents: &str,
+        contents: &core::text::Content<'_, Font>,
         size: f32,
         line_height: core::text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: core::text::Shaping,
         point: Point,
@@ -390,7 +382,6 @@ impl backend::Text for Backend {
             contents,
             size,
             line_height,
-            font,
             bounds,
             shaping,
             point,

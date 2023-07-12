@@ -57,25 +57,31 @@ impl<'a> Layer<'a> {
 
         for (i, line) in lines.iter().enumerate() {
             let text = Text {
-                content: line.as_ref(),
+                content: core::text::Content::Span(core::text::Span {
+                    content: line.as_ref(),
+                    color: Color::new(0.9, 0.9, 0.9, 1.0),
+                    font: Font::MONOSPACE,
+                }),
                 bounds: Rectangle::new(
                     Point::new(11.0, 11.0 + 25.0 * i as f32),
                     Size::INFINITY,
                 ),
-                color: Color::new(0.9, 0.9, 0.9, 1.0),
                 size: 20.0,
                 line_height: core::text::LineHeight::default(),
-                font: Font::MONOSPACE,
                 horizontal_alignment: alignment::Horizontal::Left,
                 vertical_alignment: alignment::Vertical::Top,
                 shaping: core::text::Shaping::Basic,
             };
 
-            overlay.text.push(text);
+            overlay.text.push(text.clone());
 
             overlay.text.push(Text {
+                content: core::text::Content::Span(core::text::Span {
+                    content: line.as_ref(),
+                    color: Color::BLACK,
+                    font: Font::MONOSPACE,
+                }),
                 bounds: text.bounds + Vector::new(-1.0, -1.0),
-                color: Color::BLACK,
                 ..text
             });
         }
@@ -118,8 +124,6 @@ impl<'a> Layer<'a> {
                 bounds,
                 size,
                 line_height,
-                color,
-                font,
                 horizontal_alignment,
                 vertical_alignment,
                 shaping,
@@ -127,12 +131,10 @@ impl<'a> Layer<'a> {
                 let layer = &mut layers[current_layer];
 
                 layer.text.push(Text {
-                    content,
+                    content: content.into(),
                     bounds: *bounds + translation,
                     size: *size,
                     line_height: *line_height,
-                    color: *color,
-                    font: *font,
                     horizontal_alignment: *horizontal_alignment,
                     vertical_alignment: *vertical_alignment,
                     shaping: *shaping,

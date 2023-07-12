@@ -6,10 +6,10 @@ use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 
 /// A paragraph.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Text<'a, Font> {
     /// The content of the paragraph.
-    pub content: &'a str,
+    pub content: Content<'a, Font>,
 
     /// The bounds of the paragraph.
     pub bounds: Rectangle,
@@ -20,12 +20,6 @@ pub struct Text<'a, Font> {
     /// The line height of the [`Text`].
     pub line_height: LineHeight,
 
-    /// The color of the [`Text`].
-    pub color: Color,
-
-    /// The font of the [`Text`].
-    pub font: Font,
-
     /// The horizontal alignment of the [`Text`].
     pub horizontal_alignment: alignment::Horizontal,
 
@@ -34,6 +28,47 @@ pub struct Text<'a, Font> {
 
     /// The [`Shaping`] strategy of the [`Text`].
     pub shaping: Shaping,
+}
+
+/// The [`Text`] content.
+#[derive(Debug, Clone)]
+pub enum Content<'a, Font> {
+    /// A single [`Span`] of text.
+    Span(Span<'a, Font>),
+    /// Multiple spans of text.
+    Spans(Vec<Span<'a, Font>>),
+}
+
+impl<'a, Font> Content<'a, Font> {
+    /// Create a single span of text content
+    pub fn span(content: &'a str, color: Color, font: Font) -> Self {
+        Self::Span(Span {
+            content,
+            color,
+            font,
+        })
+    }
+
+    /// Iterate over the spans of the [`Content`].
+    pub fn iter(&self) -> Box<dyn Iterator<Item = &Span<'a, Font>> + '_> {
+        match self {
+            Content::Span(span) => Box::new(std::iter::once(span)),
+            Content::Spans(spans) => Box::new(spans.iter()),
+        }
+    }
+}
+
+/// A span of text.
+#[derive(Debug, Clone, Copy)]
+pub struct Span<'a, Font> {
+    /// The content of the span.
+    pub content: &'a str,
+
+    /// The color of the [`Span`].
+    pub color: Color,
+
+    /// The font of the [`Span`].
+    pub font: Font,
 }
 
 /// The shaping strategy of some text.
@@ -157,10 +192,9 @@ pub trait Renderer: crate::Renderer {
     /// that can fit the contents.
     fn measure(
         &self,
-        content: &str,
+        content: &Content<'_, Self::Font>,
         size: f32,
         line_height: LineHeight,
-        font: Self::Font,
         bounds: Size,
         shaping: Shaping,
     ) -> Size;
@@ -168,16 +202,14 @@ pub trait Renderer: crate::Renderer {
     /// Measures the width of the text as if it were laid out in a single line.
     fn measure_width(
         &self,
-        content: &str,
+        content: &Content<'_, Self::Font>,
         size: f32,
-        font: Self::Font,
         shaping: Shaping,
     ) -> f32 {
         let bounds = self.measure(
             content,
             size,
             LineHeight::Absolute(Pixels(size)),
-            font,
             Size::INFINITY,
             shaping,
         );
@@ -194,10 +226,9 @@ pub trait Renderer: crate::Renderer {
     /// with the nearest centeroid.
     fn hit_test(
         &self,
-        contents: &str,
+        contents: &Content<'_, Self::Font>,
         size: f32,
         line_height: LineHeight,
-        font: Self::Font,
         bounds: Size,
         shaping: Shaping,
         point: Point,

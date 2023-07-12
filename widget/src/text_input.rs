@@ -479,9 +479,12 @@ where
 
     if let Some(icon) = icon {
         let icon_width = renderer.measure_width(
-            &icon.code_point.to_string(),
+            &text::Content::span(
+                &icon.code_point.to_string(),
+                Color::TRANSPARENT,
+                icon.font,
+            ),
             icon.size.unwrap_or_else(|| renderer.default_size()),
-            icon.font,
             text::Shaping::Advanced,
         );
 
@@ -997,11 +1000,13 @@ pub fn draw<Renderer>(
         let icon_layout = children_layout.next().unwrap();
 
         renderer.fill_text(Text {
-            content: &icon.code_point.to_string(),
+            content: text::Content::span(
+                &icon.code_point.to_string(),
+                appearance.icon_color,
+                icon.font,
+            ),
             size: icon.size.unwrap_or_else(|| renderer.default_size()),
             line_height: text::LineHeight::default(),
-            font: icon.font,
-            color: appearance.icon_color,
             bounds: Rectangle {
                 y: text_bounds.center_y(),
                 ..icon_layout.bounds()
@@ -1110,9 +1115,12 @@ pub fn draw<Renderer>(
     };
 
     let text_width = renderer.measure_width(
-        if text.is_empty() { placeholder } else { &text },
+        &text::Content::span(
+            if text.is_empty() { placeholder } else { &text },
+            Color::TRANSPARENT,
+            font,
+        ),
         size,
-        font,
         text::Shaping::Advanced,
     );
 
@@ -1124,15 +1132,17 @@ pub fn draw<Renderer>(
         }
 
         renderer.fill_text(Text {
-            content: if text.is_empty() { placeholder } else { &text },
-            color: if text.is_empty() {
-                theme.placeholder_color(style)
-            } else if is_disabled {
-                theme.disabled_color(style)
-            } else {
-                theme.value_color(style)
-            },
-            font,
+            content: text::Content::span(
+                if text.is_empty() { placeholder } else { &text },
+                if text.is_empty() {
+                    theme.placeholder_color(style)
+                } else if is_disabled {
+                    theme.disabled_color(style)
+                } else {
+                    theme.value_color(style)
+                },
+                font,
+            ),
             bounds: Rectangle {
                 y: text_bounds.center_y(),
                 width: f32::INFINITY,
@@ -1348,9 +1358,8 @@ where
     let text_before_cursor = value.until(cursor_index).to_string();
 
     let text_value_width = renderer.measure_width(
-        &text_before_cursor,
+        &text::Content::span(&text_before_cursor, Color::TRANSPARENT, font),
         size,
-        font,
         text::Shaping::Advanced,
     );
 
@@ -1382,10 +1391,9 @@ where
 
     let char_offset = renderer
         .hit_test(
-            &value,
+            &text::Content::span(&value, Color::TRANSPARENT, font),
             size,
             line_height,
-            font,
             Size::INFINITY,
             text::Shaping::Advanced,
             Point::new(x + offset, text_bounds.height / 2.0),

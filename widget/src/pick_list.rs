@@ -391,9 +391,12 @@ where
         Length::Shrink => {
             let measure = |label: &str| -> f32 {
                 let width = renderer.measure_width(
-                    label,
+                    &text::Content::span(
+                        label,
+                        crate::core::Color::TRANSPARENT,
+                        font.unwrap_or_else(|| renderer.default_font()),
+                    ),
                     text_size,
-                    font.unwrap_or_else(|| renderer.default_font()),
                     text_shaping,
                 );
 
@@ -664,11 +667,13 @@ pub fn draw<'a, T, Renderer>(
         let size = size.unwrap_or_else(|| renderer.default_size());
 
         renderer.fill_text(Text {
-            content: &code_point.to_string(),
+            content: text::Content::span(
+                &code_point.to_string(),
+                style.handle_color,
+                font,
+            ),
             size,
             line_height,
-            font,
-            color: style.handle_color,
             bounds: Rectangle {
                 x: bounds.x + bounds.width - padding.horizontal(),
                 y: bounds.center_y(),
@@ -687,15 +692,17 @@ pub fn draw<'a, T, Renderer>(
         let text_size = text_size.unwrap_or_else(|| renderer.default_size());
 
         renderer.fill_text(Text {
-            content: label,
+            content: text::Content::span(
+                label,
+                if is_selected {
+                    style.text_color
+                } else {
+                    style.placeholder_color
+                },
+                font,
+            ),
             size: text_size,
             line_height: text_line_height,
-            font,
-            color: if is_selected {
-                style.text_color
-            } else {
-                style.placeholder_color
-            },
             bounds: Rectangle {
                 x: bounds.x + padding.left,
                 y: bounds.center_y(),

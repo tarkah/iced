@@ -157,29 +157,21 @@ where
 
     fn measure(
         &self,
-        content: &str,
+        content: &text::Content<'_, Font>,
         size: f32,
         line_height: text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: text::Shaping,
     ) -> Size {
-        self.backend().measure(
-            content,
-            size,
-            line_height,
-            font,
-            bounds,
-            shaping,
-        )
+        self.backend()
+            .measure(content, size, line_height, bounds, shaping)
     }
 
     fn hit_test(
         &self,
-        content: &str,
+        content: &text::Content<'_, Font>,
         size: f32,
         line_height: text::LineHeight,
-        font: Font,
         bounds: Size,
         shaping: text::Shaping,
         point: Point,
@@ -189,7 +181,6 @@ where
             content,
             size,
             line_height,
-            font,
             bounds,
             shaping,
             point,
@@ -203,12 +194,10 @@ where
 
     fn fill_text(&mut self, text: Text<'_, Self::Font>) {
         self.primitives.push(Primitive::Text {
-            content: text.content.to_string(),
+            content: text.content.into(),
             bounds: text.bounds,
             size: text.size,
             line_height: text.line_height,
-            color: text.color,
-            font: text.font,
             horizontal_alignment: text.horizontal_alignment,
             vertical_alignment: text.vertical_alignment,
             shaping: text.shaping,
