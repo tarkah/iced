@@ -173,14 +173,14 @@ impl Cursor {
         end.min(value.len())
     }
 
-    fn left(&self, value: &Value) -> usize {
+    pub(crate) fn left(&self, value: &Value) -> usize {
         match self.state(value) {
             State::Index(index) => index,
             State::Selection { start, end } => start.min(end),
         }
     }
 
-    fn right(&self, value: &Value) -> usize {
+    pub(crate) fn right(&self, value: &Value) -> usize {
         match self.state(value) {
             State::Index(index) => index,
             State::Selection { start, end } => start.max(end),

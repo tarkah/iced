@@ -573,7 +573,18 @@ where
 
             if let Some(cursor_position) = click_position {
                 let text_layout = layout.children().next().unwrap();
-                let target = cursor_position.x - text_layout.bounds().x;
+
+                let (_, offset) = measure_cursor_and_scroll_offset(
+                    renderer,
+                    text_layout.bounds(),
+                    value,
+                    size.unwrap_or_else(|| renderer.default_size()),
+                    state.cursor.right(value),
+                    font.unwrap_or_else(|| renderer.default_font()),
+                );
+
+                let target =
+                    cursor_position.x + offset - text_layout.bounds().x;
 
                 let click =
                     mouse::Click::new(cursor_position, state.last_click);
