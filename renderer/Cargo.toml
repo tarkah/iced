@@ -23,8 +23,9 @@ webgl = ["iced_wgpu?/webgl"]
 iced_graphics.workspace = true
 iced_tiny_skia.workspace = true
 
-iced_wgpu.workspace = true
-iced_wgpu.optional = true
-
 log.workspace = true
 thiserror.workspace = true
+
+[dependencies.iced_wgpu]
+workspace = true
+optional = true
